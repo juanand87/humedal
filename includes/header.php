@@ -58,8 +58,8 @@ if (!empty($social_links)) {
     
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
       <div class="container">
-        <a class="navbar-brand d-flex align-items-center" href="/">
-          <img src="<?php echo $logo; ?>" alt="Humedal" height="48" />
+        <a class="navbar-brand d-flex align-items-center" href="<?php echo defined('BASE_URL') ? BASE_URL : '/humedal/'; ?>">
+          <img src="<?php echo $logo; ?>" alt="Humedal - Ir al inicio" height="48" />
           <span class="ms-2 brand-text"><?php echo htmlspecialchars($settings['site_name'] ?? 'HUMEDAL'); ?></span>
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav" aria-controls="nav" aria-expanded="false" aria-label="Toggle navigation">

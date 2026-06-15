@@ -4,10 +4,12 @@ require __DIR__ . '/includes/header.php';
 // Obtener slides para el slider
 $slides = [];
 try {
-    include __DIR__ . '/panel/config.php';
-    $stmt = $pdo->query('SELECT * FROM slides ORDER BY `order`, id ASC LIMIT 10');
-    if ($stmt) {
-        $slides = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    // La conexión $pdo ya viene de includes/header.php -> panel/config.php
+    if (isset($pdo)) {
+        $stmt = $pdo->query('SELECT * FROM slides ORDER BY `order`, id ASC LIMIT 10');
+        if ($stmt) {
+            $slides = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        }
     }
 } catch (Exception $e) {
     // Si hay error, continuamos sin slides
@@ -16,6 +18,41 @@ try {
 ?>
 
 <main>
+  <?php if (!empty($slides)): ?>
+  <!-- Slider configurable (reemplaza al hero estático cuando hay slides) -->
+  <section class="hero-slider">
+    <div id="mainSlider" class="carousel slide" data-bs-ride="carousel">
+      <div class="carousel-inner">
+        <?php foreach ($slides as $index => $slide): ?>
+          <div class="carousel-item <?php echo $index === 0 ? 'active' : ''; ?>">
+            <div class="slider-content" style="background-image: url('<?php echo htmlspecialchars($slide['image_url'] ?? ''); ?>');">
+              <div class="container">
+                <div class="slider-text">
+                  <h2><?php echo htmlspecialchars($slide['title']); ?></h2>
+                  <?php if (!empty($slide['subtitle'])): ?>
+                    <p class="lead"><?php echo htmlspecialchars($slide['subtitle']); ?></p>
+                  <?php endif; ?>
+                  <?php if (!empty($slide['link_url'])): ?>
+                    <a href="<?php echo htmlspecialchars($slide['link_url']); ?>" class="btn btn-success btn-lg">VER MÁS</a>
+                  <?php endif; ?>
+                </div>
+              </div>
+            </div>
+          </div>
+        <?php endforeach; ?>
+      </div>
+      <button class="carousel-control-prev" type="button" data-bs-target="#mainSlider" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Anterior</span>
+      </button>
+      <button class="carousel-control-next" type="button" data-bs-target="#mainSlider" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Siguiente</span>
+      </button>
+    </div>
+  </section>
+  <?php else: ?>
+  <!-- Hero estático (solo se muestra cuando NO hay slides) -->
   <section class="hero">
     <div class="container hero-inner">
       <div class="hero-left">
@@ -52,40 +89,6 @@ try {
         </div>
       </div>
       <div class="hero-right" aria-hidden="true"></div>
-    </div>
-  </section>
-  
-  <!-- Slider configurable -->
-  <?php if (!empty($slides)): ?>
-  <section class="hero-slider">
-    <div id="mainSlider" class="carousel slide" data-bs-ride="carousel">
-      <div class="carousel-inner">
-        <?php foreach ($slides as $index => $slide): ?>
-          <div class="carousel-item <?php echo $index === 0 ? 'active' : ''; ?>">
-            <div class="slider-content" style="background-image: url('<?php echo htmlspecialchars($slide['image_url'] ?? 'assets/img/slide1.jpg'); ?>');">
-              <div class="container">
-                <div class="slider-text">
-                  <h2><?php echo htmlspecialchars($slide['title']); ?></h2>
-                  <?php if (!empty($slide['subtitle'])): ?>
-                    <p class="lead"><?php echo htmlspecialchars($slide['subtitle']); ?></p>
-                  <?php endif; ?>
-                  <?php if (!empty($slide['link_url'])): ?>
-                    <a href="<?php echo htmlspecialchars($slide['link_url']); ?>" class="btn btn-success btn-lg">VER MÁS</a>
-                  <?php endif; ?>
-                </div>
-              </div>
-            </div>
-          </div>
-        <?php endforeach; ?>
-      </div>
-      <button class="carousel-control-prev" type="button" data-bs-target="#mainSlider" data-bs-slide="prev">
-        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-        <span class="visually-hidden">Anterior</span>
-      </button>
-      <button class="carousel-control-next" type="button" data-bs-target="#mainSlider" data-bs-slide="next">
-        <span class="carousel-control-next-icon" aria-hidden="true"></span>
-        <span class="visually-hidden">Siguiente</span>
-      </button>
     </div>
   </section>
   <?php endif; ?>

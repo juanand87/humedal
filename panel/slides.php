@@ -128,16 +128,21 @@ $media_files = $pdo->query('SELECT id, filename, file_path FROM media WHERE file
                             </div>
                             <div class='col-md-6'>
                                 <label class='form-label'>Imagen</label>
-                                <select name='image_url' class='form-select'>
-                                    <option value=''>Seleccionar imagen...</option>
-                                    <?php foreach ($media_files as $media): ?>
-                                        <option value='<?php echo htmlspecialchars($media['file_path']); ?>'>
-                                            <?php echo htmlspecialchars($media['filename']); ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
+                                <div class="input-group">
+                                    <select name='image_url' id='newSlideImage' class='form-select'>
+                                        <option value=''>Seleccionar imagen...</option>
+                                        <?php foreach ($media_files as $media): ?>
+                                            <option value='<?php echo htmlspecialchars($media['file_path']); ?>'>
+                                                <?php echo htmlspecialchars($media['filename']); ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                    <button class="btn btn-outline-secondary" type="button" onclick="openMediaModal('newSlideImage')">
+                                        <i class="fas fa-images"></i> Biblioteca
+                                    </button>
+                                </div>
                                 <small class='text-muted d-block mt-2'>
-                                    <a href='media.php' target='_blank'><i class='fas fa-plus'></i> Agregar nueva imagen</a>
+                                    Selecciona de la lista o abre la biblioteca para subir una nueva.
                                 </small>
                             </div>
                             <div class='col-md-6'>
@@ -218,17 +223,19 @@ $media_files = $pdo->query('SELECT id, filename, file_path FROM media WHERE file
                             </div>
                             <div class='col-md-6'>
                                 <label class='form-label'>Imagen</label>
-                                <select name='image_url' id='editSlideImage' class='form-select'>
-                                    <option value=''>Seleccionar imagen...</option>
-                                    <?php foreach ($media_files as $media): ?>
-                                        <option value='<?php echo htmlspecialchars($media['file_path']); ?>'>
-                                            <?php echo htmlspecialchars($media['filename']); ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                                <small class='text-muted d-block mt-2'>
-                                    <a href='media.php' target='_blank'><i class='fas fa-plus'></i> Agregar nueva imagen</a>
-                                </small>
+                                <div class="input-group">
+                                    <select name='image_url' id='editSlideImage' class='form-select'>
+                                        <option value=''>Seleccionar imagen...</option>
+                                        <?php foreach ($media_files as $media): ?>
+                                            <option value='<?php echo htmlspecialchars($media['file_path']); ?>'>
+                                                <?php echo htmlspecialchars($media['filename']); ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                    <button class="btn btn-outline-secondary" type="button" onclick="openMediaModal('editSlideImage')">
+                                        <i class="fas fa-images"></i> Biblioteca
+                                    </button>
+                                </div>
                             </div>
                             <div class='col-md-6'>
                                 <label class='form-label'>Enlace (opcional)</label>
@@ -249,8 +256,57 @@ $media_files = $pdo->query('SELECT id, filename, file_path FROM media WHERE file
         </div>
     </div>
 
+    <div class='modal fade' id='mediaModal' tabindex='-1' aria-hidden='true'>
+        <div class='modal-dialog modal-xl modal-dialog-centered'>
+            <div class='modal-content'>
+                <div class='modal-header'>
+                    <h5 class='modal-title'>Biblioteca de Medios</h5>
+                    <button type='button' class='btn-close' data-bs-dismiss='modal' aria-label='Close'></button>
+                </div>
+                <div class='modal-body p-0'>
+                    <iframe id='mediaIframe' src='media.php?mode=select' style='width: 100%; height: 600px; border: none;'></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src='https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js'></script>
     <script>
+        let targetSelectorId = '';
+        const mediaModal = new bootstrap.Modal(document.getElementById('mediaModal'));
+
+        function openMediaModal(targetId) {
+            targetSelectorId = targetId;
+            // Recargar iframe para ver nuevos archivos
+            document.getElementById('mediaIframe').src = 'media.php?mode=select';
+            mediaModal.show();
+        }
+
+        function selectImage(path) {
+            const selector = document.getElementById(targetSelectorId);
+            
+            // Verificar si la opción ya existe en el select
+            let exists = false;
+            for (let i = 0; i < selector.options.length; i++) {
+                if (selector.options[i].value === path) {
+                    exists = true;
+                    selector.selectedIndex = i;
+                    break;
+                }
+            }
+
+            // Si no existe, crearla y seleccionarla
+            if (!exists) {
+                const option = document.createElement('option');
+                option.value = path;
+                option.text = path.split('/').pop();
+                selector.add(option);
+                selector.value = path;
+            }
+
+            mediaModal.hide();
+        }
+
         function loadSlide(slide) {
             document.getElementById('editSlideId').value = slide.id;
             document.getElementById('editSlideTitle').value = slide.title;
