@@ -1,0 +1,27 @@
+﻿version: 1.0.0
+schema: v1
+
+models:
+  - name: Qwen 2.5 Plus
+    provider: openai
+    model: qwen-plus
+    apiBase: https://dashscope-intl.aliyuncs.com/compatible-mode/v1
+    apiKey: "sk-f3b6223aa02d4d299e11cfd6e7e4ff67"
+    addHeaders:
+      Content-Type: application/json
+    customRequest: |
+      {
+        "model": "{{model}}",
+        "input": {
+          "messages": {{messages | json}}
+        }
+      }
+    roles:
+      - chat
+      - edit
+      - apply
+
+defaultModel:
+  chat: Qwen 2.5 Plus
+  edit: Qwen 2.5 Plus
+  apply: Qwen 2.5 Plus

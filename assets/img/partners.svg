@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 200" width="900" height="200">
+  <defs>
+    <linearGradient id="iconGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#01274b;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#013559;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <style>
+    .partner-title{font-family:Arial, sans-serif; font-size:18px; font-weight:700; fill:#01274b; text-anchor:middle}
+    .partner-subtitle{font-family:Arial, sans-serif; font-size:13px; fill:#5a6c7a; text-anchor:middle}
+    .icon-bg{fill:#e8f4f0; stroke:#2e8b33; stroke-width:2}
+    .icon-detail{fill:none; stroke:url(#iconGrad); stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round}
+  </style>
+
+  <!-- Title -->
+  <text x="450" y="30" class="partner-title">Aliados en el desarrollo sostenible</text>
+  
+  <!-- Icons row -->
+  <g transform="translate(40,60)">
+    <!-- Municipalidades -->
+    <g>
+      <circle cx="70" cy="40" r="32" class="icon-bg"/>
+      <path d="M55 35 L55 50 M60 35 L60 50 M65 35 L65 50 M70 35 L70 50 M75 35 L75 50 M80 35 L80 50 M85 35 L85 50" class="icon-detail"/>
+      <path d="M52 33 L88 33 L70 20 Z" class="icon-detail"/>
+      <text x="70" y="100" class="partner-subtitle">Municipalidades</text>
+    </g>
+
+    <!-- Empresas -->
+    <g transform="translate(165,0)">
+      <circle cx="70" cy="40" r="32" class="icon-bg"/>
+      <rect x="58" y="28" width="24" height="24" rx="2" class="icon-detail"/>
+      <path d="M62 32 L62 48 M66 32 L66 48 M70 32 L70 48 M74 32 L74 48 M78 32 L78 48" class="icon-detail"/>
+      <text x="70" y="100" class="partner-subtitle">Empresas</text>
+    </g>
+
+    <!-- Oficinas de Arquitectura -->
+    <g transform="translate(330,0)">
+      <circle cx="70" cy="40" r="32" class="icon-bg"/>
+      <path d="M58 48 L70 28 L82 48 M62 42 L78 42" class="icon-detail"/>
+      <circle cx="70" cy="36" r="3" class="icon-detail"/>
+      <text x="70" y="100" class="partner-subtitle">Oficinas de</text>
+      <text x="70" y="115" class="partner-subtitle">Arquitectura</text>
+    </g>
+
+    <!-- Empresas Constructoras -->
+    <g transform="translate(495,0)">
+      <circle cx="70" cy="40" r="32" class="icon-bg"/>
+      <circle cx="70" cy="35" r="6" class="icon-detail"/>
+      <path d="M64 41 L76 41 L78 50 L62 50 Z" class="icon-detail"/>
+      <path d="M55 50 L85 50" class="icon-detail"/>
+      <text x="70" y="100" class="partner-subtitle">Empresas</text>
+      <text x="70" y="115" class="partner-subtitle">Constructoras</text>
+    </g>
+
+    <!-- Organizaciones y Emprendedores -->
+    <g transform="translate(660,0)">
+      <circle cx="70" cy="40" r="32" class="icon-bg"/>
+      <circle cx="64" cy="35" r="4" class="icon-detail"/>
+      <circle cx="76" cy="35" r="4" class="icon-detail"/>
+      <circle cx="70" cy="47" r="4" class="icon-detail"/>
+      <path d="M64 39 L70 43 M76 39 L70 43" class="icon-detail"/>
+      <text x="70" y="100" class="partner-subtitle">Organizaciones y</text>
+      <text x="70" y="115" class="partner-subtitle">Emprendedores</text>
+    </g>
+  </g>
+</svg>
