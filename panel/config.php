@@ -25,6 +25,39 @@ function executeQuery($sql, $params = []) {
     }
 }
 
+// Función para normalizar arrays de menú guardados en JSON o serializados
+function normalizeMenuItems($value) {
+    $clean = function($items) {
+        if (!is_array($items)) {
+            return [];
+        }
+
+        return array_values(array_filter($items, function($item) {
+            return is_array($item) && (!empty($item['label']) || !empty($item['url']));
+        }));
+    };
+
+    if (is_array($value)) {
+        return $clean($value);
+    }
+
+    if (!is_string($value) || trim($value) === '') {
+        return [];
+    }
+
+    $decoded = json_decode($value, true);
+    if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+        return $clean($decoded);
+    }
+
+    $unserialized = @unserialize($value);
+    if (is_array($unserialized)) {
+        return $clean($unserialized);
+    }
+
+    return [];
+}
+
 // Función para obtener configuración del sitio
 function getSiteSettings() {
     $stmt = executeQuery("SELECT * FROM site_settings LIMIT 1");

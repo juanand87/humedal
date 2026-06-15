@@ -78,10 +78,10 @@ if ($_POST) {
 
 // Obtener configuración actual
 $settings = getSiteSettings();
-$menu_items = json_decode($settings['menu_items'] ?? '[]', true);
-$header_menu = json_decode($settings['header_menu'] ?? '[]', true);
-$header_menu_1 = json_decode($settings['header_menu_1'] ?? '[]', true);
-$header_menu_2 = json_decode($settings['header_menu_2'] ?? '[]', true);
+$menu_items = normalizeMenuItems($settings['menu_items'] ?? '[]');
+$header_menu = normalizeMenuItems($settings['header_menu'] ?? '[]');
+$header_menu_1 = normalizeMenuItems($settings['header_menu_1'] ?? '[]');
+$header_menu_2 = normalizeMenuItems($settings['header_menu_2'] ?? '[]');
 $social_links_html = $settings['social_links_html'] ?? '';
 
 // Obtener páginas disponibles
@@ -230,6 +230,12 @@ $pages = executeQuery("SELECT id, title, slug FROM pages ORDER BY title ASC")->f
                     </a>
                     <a href='menu.php' class='active'>
                         <i class='fas fa-bars'></i> Menú
+                    </a>
+                    <a href='media.php'>
+                        <i class='fas fa-images'></i> Medios
+                    </a>
+                    <a href='slides.php'>
+                        <i class='fas fa-sliders-h'></i> Slides
                     </a>
                     <a href='social.php'>
                         <i class='fab fa-share-alt'></i> Redes Sociales

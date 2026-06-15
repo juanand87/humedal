@@ -4,7 +4,7 @@ if (!function_exists('getSiteSettings')) {
     include_once __DIR__ . '/../panel/config.php';
 }
 $settings = getSiteSettings();
-$menu_items = json_decode($settings['menu_items'] ?? '[]', true);
+$menu_items = normalizeMenuItems($settings['menu_items'] ?? '[]');
 $social_links = json_decode($settings['social_links'] ?? '[]', true);
 $logo = !empty($settings['logo']) ? 'assets/img/' . $settings['logo'] : 'assets/img/logo.svg';
 

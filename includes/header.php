@@ -4,9 +4,16 @@ if (!function_exists('getSiteSettings')) {
     include_once __DIR__ . '/../panel/config.php';
 }
 $settings = getSiteSettings();
-$menu_items = json_decode($settings['menu_items'] ?? '[]', true);
+$menu_items = normalizeMenuItems($settings['menu_items'] ?? '[]');
 $social_links = json_decode($settings['social_links'] ?? '[]', true);
-$header_menu = json_decode($settings['header_menu'] ?? '[]', true); // Nuevo menú para el header
+$header_menu = normalizeMenuItems($settings['header_menu'] ?? '[]');
+$header_menu_1 = normalizeMenuItems($settings['header_menu_1'] ?? '[]');
+$header_menu_2 = normalizeMenuItems($settings['header_menu_2'] ?? '[]');
+
+// Fallback: use header_menu_1 if header_menu is empty
+if (empty($header_menu)) {
+    $header_menu = $header_menu_1;
+}
 $logo = !empty($settings['logo']) ? 'assets/img/' . $settings['logo'] : 'assets/img/logo.svg';
 
 $whatsapp_link = '#contacto'; // Valor por defecto
@@ -32,23 +39,21 @@ if (!empty($social_links)) {
 <body>
   <header class="site-header">
     <!-- Nuevo Menú Header -->
+    <?php if (!empty($header_menu)): ?>
     <div class="bg-light py-2">
       <div class="container">
         <ul class="nav justify-content-center">
-          <?php if (!empty($header_menu)): ?>
-              <?php foreach ($header_menu as $item): ?>
-                  <li class="nav-item">
-                      <a class="nav-link" href="<?php echo htmlspecialchars($item['url']); ?>">
-                          <?php echo htmlspecialchars($item['label']); ?>
-                      </a>
-                  </li>
-              <?php endforeach; ?>
-          <?php else: ?>
-              <li class="nav-item"><span class="nav-link text-muted">No hay enlaces en el Menú Header</span></li>
-          <?php endif; ?>
+          <?php foreach ($header_menu as $item): ?>
+              <li class="nav-item">
+                  <a class="nav-link" href="<?php echo htmlspecialchars($item['url']); ?>">
+                      <?php echo htmlspecialchars($item['label']); ?>
+                  </a>
+              </li>
+          <?php endforeach; ?>
         </ul>
       </div>
     </div>
+    <?php endif; ?>
     <!-- Fin Nuevo Menú Header -->
     
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
