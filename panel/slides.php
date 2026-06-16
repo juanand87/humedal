@@ -278,13 +278,49 @@ $media_files = $pdo->query('SELECT id, filename, file_path FROM media WHERE file
         function openMediaModal(targetId) {
             targetSelectorId = targetId;
             // Recargar iframe para ver nuevos archivos
-            document.getElementById('mediaIframe').src = 'media.php?mode=select';
+            document.getElementById('mediaIframe').src = 'media.php?mode=select&target_id=' + targetId;
             mediaModal.show();
+        }
+
+        // Llamada desde el iframe cuando se sube un nuevo archivo
+        function registerNewMedia(data) {
+            if (!data || !data.file_path) return;
+            addOptionToSelector(targetSelectorId, data.file_path, data.filename);
+        }
+
+        function addOptionToSelector(selectorId, value, label) {
+            const selector = document.getElementById(selectorId);
+            if (!selector) return;
+
+            // Verificar si la opción ya existe
+            let exists = false;
+            for (let i = 0; i < selector.options.length; i++) {
+                if (selector.options[i].value === value) {
+                    exists = true;
+                    selector.selectedIndex = i;
+                    break;
+                }
+            }
+
+            // Si no existe, agregarla y seleccionarla
+            if (!exists) {
+                const option = document.createElement('option');
+                option.value = value;
+                option.text = label || value.split('/').pop();
+                option.selected = true;
+                selector.add(option);
+                selector.value = value;
+            }
         }
 
         function selectImage(path) {
             const selector = document.getElementById(targetSelectorId);
-            
+
+            if (!selector) {
+                mediaModal.hide();
+                return;
+            }
+
             // Verificar si la opción ya existe en el select
             let exists = false;
             for (let i = 0; i < selector.options.length; i++) {

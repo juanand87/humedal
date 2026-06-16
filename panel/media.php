@@ -17,17 +17,30 @@ if (!is_dir($upload_dir)) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['media_file'])) {
     $file = $_FILES['media_file'];
     $allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
-    
+
     if (in_array($file['type'], $allowed_types) && $file['size'] <= 5242880) { // 5MB
         $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', basename($file['name']));
         $target_path = $upload_dir . $filename;
-        
+
         if (move_uploaded_file($file['tmp_name'], $target_path)) {
             $file_path = 'assets/uploads/' . $filename;
             $stmt = $pdo->prepare('INSERT INTO media (filename, file_path, file_type, file_size) VALUES (?, ?, ?, ?)');
             $stmt->execute([$file['name'], $file_path, $file['type'], $file['size']]);
             $message = 'Archivo subido exitosamente';
             $message_type = 'success';
+
+            // Si es desde el modal, devolver JSON para auto-selección
+            if (($mode ?? '') === 'select' && isset($_POST['from_modal'])) {
+                $new_id = $pdo->lastInsertId();
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => true,
+                    'id' => $new_id,
+                    'filename' => $file['name'],
+                    'file_path' => $file_path
+                ]);
+                exit;
+            }
         } else {
             $message = 'Error al mover el archivo';
             $message_type = 'danger';
@@ -42,7 +55,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['media_file'])) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete') {
     $id = (int)($_POST['id'] ?? 0);
     if ($id) {
-        $media = $pdo->prepare('SELECT file_path FROM media WHERE id = ?')->fetch(PDO::FETCH_ASSOC, [$id]);
+        $stmt_sel = $pdo->prepare('SELECT file_path FROM media WHERE id = ?');
+        $stmt_sel->execute([$id]);
+        $media = $stmt_sel->fetch(PDO::FETCH_ASSOC);
         if ($media && file_exists(__DIR__ . '/../' . $media['file_path'])) {
             unlink(__DIR__ . '/../' . $media['file_path']);
         }
@@ -57,6 +72,14 @@ $media_files = $pdo->query('SELECT * FROM media ORDER BY created_at DESC')->fetc
 
 // Detectar modo selección para modal
 $mode = $_GET['mode'] ?? 'full';
+$target_id = $_GET['target_id'] ?? '';
+
+// Si es una llamada AJAX para obtener archivos nuevos
+if (isset($_GET['ajax']) && $_GET['ajax'] === 'list') {
+    header('Content-Type: application/json');
+    echo json_encode($media_files);
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -129,7 +152,7 @@ $mode = $_GET['mode'] ?? 'full';
                             <?php endif; ?>
                         </div>
 
-                        <form method='POST' enctype='multipart/form-data' class="mb-4">
+                        <form method='POST' enctype='multipart/form-data' class="mb-4" id="uploadForm" <?php echo $mode === 'select' ? 'data-modal-mode="1"' : ''; ?>>
                             <div class='upload-zone' id='uploadZone'>
                                 <input type='file' name='media_file' id='mediaFile' class='d-none' accept='image/*,.pdf'>
                                 <p class='mb-0 small'><strong>Arrastra archivos aquí o haz clic</strong></p>
@@ -178,6 +201,18 @@ $mode = $_GET['mode'] ?? 'full';
         const uploadZone = document.getElementById('uploadZone');
         const mediaFile = document.getElementById('mediaFile');
         const submitBtn = document.getElementById('submitBtn');
+        const uploadForm = document.getElementById('uploadForm');
+        const isModal = uploadForm && uploadForm.dataset.modalMode === '1';
+
+        // Inyectar campo from_modal cuando estamos en modo modal
+        if (isModal && !document.getElementById('fromModalField')) {
+            const hidden = document.createElement('input');
+            hidden.type = 'hidden';
+            hidden.name = 'from_modal';
+            hidden.value = '1';
+            hidden.id = 'fromModalField';
+            uploadForm.appendChild(hidden);
+        }
 
         uploadZone.addEventListener('click', () => mediaFile.click());
         uploadZone.addEventListener('dragover', (e) => {
@@ -196,6 +231,49 @@ $mode = $_GET['mode'] ?? 'full';
         mediaFile.addEventListener('change', () => {
             submitBtn.style.display = 'block';
         });
+
+        // Si es modal, interceptar el submit para usar fetch (no recargar iframe)
+        if (isModal) {
+            submitBtn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                if (!mediaFile.files[0]) {
+                    alert('Selecciona un archivo primero');
+                    return;
+                }
+
+                const formData = new FormData(uploadForm);
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo...';
+
+                try {
+                    const response = await fetch('media.php?mode=select', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        // Llamar a la función de la ventana padre para registrar el nuevo archivo
+                        if (window.parent && window.parent.registerNewMedia) {
+                            window.parent.registerNewMedia(data);
+                        }
+                        // Limpiar selección
+                        mediaFile.value = '';
+                        submitBtn.style.display = 'none';
+                        alert('Imagen subida. Se ha agregado al selector.');
+                        window.location.reload();
+                    } else {
+                        alert('Error al subir');
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<i class="fas fa-upload"></i> Subir Archivo';
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert('Error de conexión');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fas fa-upload"></i> Subir Archivo';
+                }
+            });
+        }
 
         function copyPath(path) {
             navigator.clipboard.writeText(path).then(() => {
