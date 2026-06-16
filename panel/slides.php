@@ -97,6 +97,7 @@ $media_files = $pdo->query('SELECT id, filename, file_path FROM media WHERE file
                     <a href='menu.php'><i class='fas fa-bars'></i> Menú</a>
                     <a href='media.php'><i class='fas fa-images'></i> Medios</a>
                     <a href='slides.php' class='active'><i class='fas fa-sliders-h'></i> Slides</a>
+                    <a href='hero.php'><i class='fas fa-image'></i> Hero (Portada)</a>
                     <a href='social.php'><i class='fab fa-share-alt'></i> Redes Sociales</a>
                     <a href='settings.php'><i class='fas fa-cog'></i> Configuración</a>
                     <a href='/' target='_blank'><i class='fas fa-external-link-alt'></i> Ver Sitio</a>

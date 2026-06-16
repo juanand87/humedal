@@ -15,6 +15,19 @@ try {
     // Si hay error, continuamos sin slides
     $slides = [];
 }
+
+// Obtener configuración del Hero
+$hero_config = [];
+try {
+    if (isset($pdo)) {
+        $rows = $pdo->query("SELECT field_key, field_value FROM hero_config")->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($rows as $row) {
+            $hero_config[$row['field_key']] = $row['field_value'];
+        }
+    }
+} catch (Exception $e) {
+    $hero_config = [];
+}
 ?>
 
 <main>
@@ -52,40 +65,31 @@ try {
     </div>
   </section>
   <?php else: ?>
-  <!-- Hero estático (solo se muestra cuando NO hay slides) -->
-  <section class="hero">
+  <!-- Hero configurable desde el panel admin -->
+  <section class="hero" <?php if (($hero_config['background_type'] ?? '') === 'image' && !empty($hero_config['background_image'])): ?>style="background-image: url('<?php echo htmlspecialchars($hero_config['background_image']); ?>'); background-size: cover; background-position: center;"<?php endif; ?>>
     <div class="container hero-inner">
       <div class="hero-left">
-        <h1>Expertos en tramitaciones <br/> sanitarias ante <span>SEREMI Salud</span></h1>
-        <p class="hero-sub">Asesoría técnica integral para proyectos sanitarios, ambientales y de infraestructura.</p>
+        <h1>
+          <?php echo htmlspecialchars($hero_config['title_line1'] ?? 'Expertos en tramitaciones'); ?><br/>
+          <?php echo htmlspecialchars($hero_config['title_line2'] ?? 'sanitarias ante'); ?> <span><?php echo htmlspecialchars($hero_config['title_highlight'] ?? 'SEREMI Salud'); ?></span>
+        </h1>
+        <p class="hero-sub"><?php echo htmlspecialchars($hero_config['subtitle'] ?? ''); ?></p>
 
         <div class="hero-features">
+          <?php for ($i = 1; $i <= 3; $i++): ?>
           <div class="feature">
-            <div class="feature-icon"><i class="fa-solid fa-check"></i></div>
+            <div class="feature-icon"><i class="fa-solid <?php echo htmlspecialchars($hero_config['feature' . $i . '_icon'] ?? 'fa-check'); ?>"></i></div>
             <div class="feature-text">
-              <strong>Experiencia</strong>
-              <div class="small">en proyectos sanitarios</div>
+              <strong><?php echo htmlspecialchars($hero_config['feature' . $i . '_title'] ?? ''); ?></strong>
+              <div class="small"><?php echo htmlspecialchars($hero_config['feature' . $i . '_text'] ?? ''); ?></div>
             </div>
           </div>
-          <div class="feature">
-            <div class="feature-icon"><i class="fa-solid fa-file-contract"></i></div>
-            <div class="feature-text">
-              <strong>Tramitación</strong>
-              <div class="small">eficiente y profesional</div>
-            </div>
-          </div>
-          <div class="feature">
-            <div class="feature-icon"><i class="fa-solid fa-user-friends"></i></div>
-            <div class="feature-text">
-              <strong>Acompañamiento</strong>
-              <div class="small">en todo el proceso</div>
-            </div>
-          </div>
+          <?php endfor; ?>
         </div>
 
         <div class="hero-ctas mt-3">
-          <a href="#servicios" class="btn btn-success btn-lg">NUESTROS SERVICIOS</a>
-          <a href="#contacto" class="btn btn-outline-light btn-lg">CONTÁCTANOS</a>
+          <a href="<?php echo htmlspecialchars($hero_config['button1_url'] ?? '#servicios'); ?>" class="btn btn-<?php echo htmlspecialchars($hero_config['button1_style'] ?? 'success'); ?> btn-lg"><?php echo htmlspecialchars($hero_config['button1_text'] ?? ''); ?></a>
+          <a href="<?php echo htmlspecialchars($hero_config['button2_url'] ?? '#contacto'); ?>" class="btn btn-<?php echo htmlspecialchars($hero_config['button2_style'] ?? 'outline-light'); ?> btn-lg"><?php echo htmlspecialchars($hero_config['button2_text'] ?? ''); ?></a>
         </div>
       </div>
       <div class="hero-right" aria-hidden="true"></div>
