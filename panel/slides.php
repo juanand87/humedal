@@ -47,15 +47,13 @@ $available_icons = [
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
-    // Detectar columnas existentes en la tabla slides
-    static $existing_columns = null;
-    if ($existing_columns === null) {
-        try {
-            $cols = $pdo->query("SHOW COLUMNS FROM slides")->fetchAll(PDO::FETCH_COLUMN, 0);
-            $existing_columns = array_flip($cols);
-        } catch (Exception $e) {
-            $existing_columns = [];
-        }
+    // Detectar columnas existentes en la tabla slides (siempre leer, no cachear)
+    $existing_columns = [];
+    try {
+        $cols = $pdo->query("SHOW COLUMNS FROM slides")->fetchAll(PDO::FETCH_COLUMN, 0);
+        $existing_columns = array_flip($cols);
+    } catch (Exception $e) {
+        $existing_columns = [];
     }
 
     $all_fields = [
@@ -321,7 +319,7 @@ function renderSlideFormFields($media_files, $available_icons, $prefix) {
                                         <span class='badge bg-secondary'>Orden: <?php echo (int)$slide['order']; ?></span>
                                     </div>
                                     <div>
-                                        <button class='btn btn-sm btn-outline-primary' data-bs-toggle='modal' data-bs-target='#editSlideModal' onclick='loadSlide(<?php echo json_encode($slide, JSON_HEX_APOS | JSON_HEX_QUOT); ?>)'>
+                                        <button class='btn btn-sm btn-outline-primary' data-bs-toggle='modal' data-bs-target='#editSlideModal' onclick='loadSlide(<?php echo json_encode($slide, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_TAG | JSON_HEX_AMP); ?>)'>
                                             <i class='fas fa-edit'></i> Editar
                                         </button>
                                         <form method='POST' style='display:inline-block;' onsubmit='return confirm("¿Eliminar este slide?")'>
@@ -494,6 +492,12 @@ function renderSlideFormFields($media_files, $available_icons, $prefix) {
         }
 
         function loadSlide(slide) {
+            console.log('Cargando slide:', slide);
+
+            // Setear ID
+            const idEl = document.getElementById('editSlideId');
+            if (idEl) idEl.value = slide.id || '';
+
             const fields = ['title','title_line2','title_highlight','subtitle','image_url','link_url','order',
                 'feature1_title','feature1_text','feature1_icon',
                 'feature2_title','feature2_text','feature2_icon',
@@ -501,11 +505,22 @@ function renderSlideFormFields($media_files, $available_icons, $prefix) {
                 'button1_text','button1_url','button1_style',
                 'button2_text','button2_url','button2_style',
                 'background_type'];
+
+            let filledCount = 0;
             fields.forEach(f => {
                 const el = document.getElementById('edit' + f);
-                if (el) el.value = slide[f] || '';
+                if (el) {
+                    const value = slide[f] !== null && slide[f] !== undefined ? slide[f] : '';
+                    el.value = value;
+                    if (value !== '') filledCount++;
+                } else {
+                    console.warn('Elemento no encontrado: edit' + f);
+                }
             });
 
+            console.log('Campos llenados:', filledCount, 'de', fields.length);
+
+            // Actualizar preview de iconos
             for (let i = 1; i <= 3; i++) {
                 const iconField = slide['feature' + i + '_icon'] || 'fa-check';
                 const previewEl = document.getElementById('editfeature' + i + '_preview');
