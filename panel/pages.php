@@ -71,7 +71,7 @@ $php_output = ob_get_clean();
     <title>Páginas - Panel Administrativo</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://cdn.tiny.cloud/1/30p7koclp4vqkpz39luduurjix8kl3t2178zwu7zoh6039l1/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tinymce@6.8.5/tinymce.min.js" referrerpolicy="origin"></script>
     <style>
         :root {
             --primary: #01274b;
@@ -304,11 +304,18 @@ $php_output = ob_get_clean();
         </div>
     </div>
     <script>
+        // TinyMCE self-hosted (sin API key, sin dominio registrado)
         tinymce.init({
             selector: '#content',
-            plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount code',
-            toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat | code',
-            api_key: '30p7koclp4vqkpz39luduurjix8kl3t2178zwu7zoh6039l1'
+            height: 500,
+            menubar: 'file edit view insert format tools table',
+            plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount code help',
+            toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat | code help',
+            content_style: 'body { font-family: Inter, system-ui, -apple-system, sans-serif; font-size: 14px; }',
+            branding: false,
+            promotion: false,
+            // Desactivar el mensaje de "registra tu dominio" usando self-hosted
+            license_key: 'gpl'
         });
     </script>
 </body>
