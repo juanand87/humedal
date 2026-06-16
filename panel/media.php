@@ -98,22 +98,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['media_file'])) {
 
 // Eliminar archivo
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete') {
+    $is_ajax_delete = isset($_POST['ajax']) && $_POST['ajax'] === '1';
+
+    // Si es AJAX, limpiar buffers
+    if ($is_ajax_delete) {
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
+        ob_start();
+    }
+
     $id = (int)($_POST['id'] ?? 0);
+    $response = ['success' => false, 'error' => '', 'filename' => ''];
+
     if ($id) {
         try {
-            $stmt_sel = $pdo->prepare('SELECT file_path FROM media WHERE id = ?');
+            $stmt_sel = $pdo->prepare('SELECT filename, file_path FROM media WHERE id = ?');
             $stmt_sel->execute([$id]);
             $media = $stmt_sel->fetch(PDO::FETCH_ASSOC);
-            if ($media && file_exists(__DIR__ . '/../' . $media['file_path'])) {
-                @unlink(__DIR__ . '/../' . $media['file_path']);
+
+            if ($media) {
+                $response['filename'] = $media['filename'];
+                // Intentar eliminar el archivo físico
+                $file_full_path = __DIR__ . '/../' . $media['file_path'];
+                if (file_exists($file_full_path)) {
+                    if (!@unlink($file_full_path)) {
+                        $response['error'] = 'No se pudo eliminar el archivo físico. Verifica permisos.';
+                    }
+                }
+                // Eliminar de la BD
+                if (empty($response['error'])) {
+                    $pdo->prepare('DELETE FROM media WHERE id = ?')->execute([$id]);
+                    $response['success'] = true;
+                    $message = 'Archivo eliminado';
+                    $message_type = 'success';
+                }
+            } else {
+                $response['error'] = 'Archivo no encontrado';
             }
-            $pdo->prepare('DELETE FROM media WHERE id = ?')->execute([$id]);
-            $message = 'Archivo eliminado';
-            $message_type = 'success';
         } catch (Exception $e) {
-            $message = 'Error al eliminar: ' . $e->getMessage();
-            $message_type = 'danger';
+            $response['error'] = $e->getMessage();
         }
+    } else {
+        $response['error'] = 'ID inválido';
+    }
+
+    if ($is_ajax_delete) {
+        ob_end_clean();
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode($response);
+        exit;
+    }
+
+    if (!$response['success']) {
+        $message = $response['error'] ?: 'Error desconocido';
+        $message_type = 'danger';
     }
 }
 
@@ -156,6 +195,15 @@ try {
         .upload-status { margin-top: 8px; padding: 8px; border-radius: 4px; font-size: 0.85rem; }
         .upload-status.success { background: #d4edda; color: #155724; }
         .upload-status.error { background: #f8d7da; color: #721c24; }
+        .media-actions { position: absolute; top: 4px; right: 4px; display: flex; gap: 4px; opacity: 0; transition: opacity 0.2s; z-index: 5; }
+        .media-item:hover .media-actions { opacity: 1; }
+        .media-item { position: relative; }
+        .btn-mini { width: 26px; height: 26px; padding: 0; border: 0; border-radius: 4px; color: #fff; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .btn-mini.btn-copy { background: rgba(43, 111, 179, 0.9); }
+        .btn-mini.btn-copy:hover { background: #2b6fb3; }
+        .btn-mini.btn-delete { background: rgba(220, 53, 69, 0.9); }
+        .btn-mini.btn-delete:hover { background: #dc3545; }
+        .btn-mini:disabled { opacity: 0.5; cursor: not-allowed; }
     </style>
 </head>
 <body>
@@ -240,16 +288,17 @@ try {
                                             <?php echo htmlspecialchars(substr($media['filename'], 0, 15)); ?>
                                         </div>
 
-                                        <?php if (!$is_modal): ?>
-                                        <div class='btn-group btn-group-sm' role='group'>
-                                            <button type='button' class='btn btn-outline-primary' onclick='event.stopPropagation(); copyPath("<?php echo htmlspecialchars($media['file_path']); ?>")'><i class='fas fa-link'></i></button>
-                                            <form method='POST' style='display:inline;' onsubmit='return confirm("¿Eliminar?")'>
-                                                <input type='hidden' name='action' value='delete'>
-                                                <input type='hidden' name='id' value='<?php echo $media['id']; ?>'>
-                                                <button type='submit' class='btn btn-outline-danger' onclick='event.stopPropagation();'><i class='fas fa-trash'></i></button>
-                                            </form>
+                                        <!-- Botones de acción: SIEMPRE visibles, en ambos modos -->
+                                        <div class='media-actions'>
+                                            <?php if (!$is_modal): ?>
+                                            <button type='button' class='btn-mini btn-copy' title='Copiar ruta' onclick='event.stopPropagation(); copyPath("<?php echo htmlspecialchars($media['file_path']); ?>")'>
+                                                <i class='fas fa-link'></i>
+                                            </button>
+                                            <?php endif; ?>
+                                            <button type='button' class='btn-mini btn-delete' title='Eliminar imagen' onclick='event.stopPropagation(); deleteMedia(<?php echo $media['id']; ?>, "<?php echo htmlspecialchars(addslashes($media['filename'])); ?>")'>
+                                                <i class='fas fa-trash'></i>
+                                            </button>
                                         </div>
-                                        <?php endif; ?>
                                     </div>
                                 <?php endforeach; ?>
                             </div>
@@ -381,6 +430,54 @@ try {
             } else {
                 alert('Ruta: ' + path);
             }
+        }
+
+        // Eliminar imagen con AJAX (funciona en modal y modo normal)
+        function deleteMedia(id, filename) {
+            if (!confirm('¿Eliminar "' + filename + '"?\n\nEsta acción no se puede deshacer.')) {
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('action', 'delete');
+            formData.append('id', id);
+            formData.append('from_modal', '1');
+            formData.append('ajax', '1');
+
+            const btn = event.target.closest('.btn-delete');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            }
+
+            fetch('media.php?mode=<?php echo $is_modal ? 'select' : 'full'; ?>', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showStatus('✓ Imagen eliminada: ' + (data.filename || filename), 'success');
+                    // Recargar el iframe después de un breve delay
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 800);
+                } else {
+                    showStatus('✗ Error al eliminar: ' + (data.error || 'Desconocido'), 'error');
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-trash"></i>';
+                    }
+                }
+            })
+            .catch(err => {
+                console.error('Error:', err);
+                showStatus('✗ Error de conexión: ' + err.message, 'error');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-trash"></i>';
+                }
+            });
         }
     </script>
 </body>
