@@ -47,7 +47,18 @@ $available_icons = [
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
-    $fields = [
+    // Detectar columnas existentes en la tabla slides
+    static $existing_columns = null;
+    if ($existing_columns === null) {
+        try {
+            $cols = $pdo->query("SHOW COLUMNS FROM slides")->fetchAll(PDO::FETCH_COLUMN, 0);
+            $existing_columns = array_flip($cols);
+        } catch (Exception $e) {
+            $existing_columns = [];
+        }
+    }
+
+    $all_fields = [
         'title', 'title_line2', 'title_highlight', 'subtitle',
         'image_url', 'link_url', 'order',
         'feature1_title', 'feature1_text', 'feature1_icon',
@@ -58,12 +69,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'background_type'
     ];
 
+    // Solo usar campos que existen en la tabla
+    $fields = array_filter($all_fields, fn($f) => isset($existing_columns[$f]));
+
     if ($action === 'add_slide') {
         $data = [];
         foreach ($fields as $f) {
             $data[$f] = $_POST[$f] ?? '';
         }
-        $data['order'] = (int)$data['order'];
+        if (isset($data['order'])) $data['order'] = (int)$data['order'];
 
         $columns = implode(',', array_map(fn($f) => "`$f`", $fields));
         $placeholders = implode(',', array_fill(0, count($fields), '?'));
@@ -80,7 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             foreach ($fields as $f) {
                 $data[$f] = $_POST[$f] ?? '';
             }
-            $data['order'] = (int)$data['order'];
+            if (isset($data['order'])) $data['order'] = (int)$data['order'];
 
             $set_clause = implode(',', array_map(fn($f) => "`$f` = ?", $fields));
             $sql = "UPDATE slides SET $set_clause WHERE id = ?";
