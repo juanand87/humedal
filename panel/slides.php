@@ -65,8 +65,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $data['order'] = (int)$data['order'];
 
+        $columns = implode(',', array_map(fn($f) => "`$f`", $fields));
         $placeholders = implode(',', array_fill(0, count($fields), '?'));
-        $sql = "INSERT INTO slides (" . implode(',', $fields) . ") VALUES ($placeholders)";
+        $sql = "INSERT INTO slides ($columns) VALUES ($placeholders)";
         $stmt = $pdo->prepare($sql);
         $stmt->execute(array_values($data));
 
@@ -81,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             $data['order'] = (int)$data['order'];
 
-            $set_clause = implode(',', array_map(fn($f) => "$f = ?", $fields));
+            $set_clause = implode(',', array_map(fn($f) => "`$f` = ?", $fields));
             $sql = "UPDATE slides SET $set_clause WHERE id = ?";
             $values = array_values($data);
             $values[] = $id;
