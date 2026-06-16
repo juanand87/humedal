@@ -192,9 +192,6 @@ $php_output = ob_get_clean();
                     <a href="slides.php">
                         <i class="fas fa-sliders-h"></i> Slides
                     </a>
-                    <a href="hero.php">
-                        <i class="fas fa-image"></i> Hero (Portada)
-                    </a>
                     <a href="social.php">
                         <i class="fab fa-share-alt"></i> Redes Sociales
                     </a>

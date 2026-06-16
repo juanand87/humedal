@@ -32,28 +32,64 @@ try {
 
 <main>
   <?php if (!empty($slides)): ?>
-  <!-- Slider configurable (reemplaza al hero estático cuando hay slides) -->
+  <!-- Slider de Portadas - Cada slide es un Hero completo -->
   <section class="hero-slider">
     <div id="mainSlider" class="carousel slide" data-bs-ride="carousel">
       <div class="carousel-inner">
         <?php foreach ($slides as $index => $slide): ?>
           <div class="carousel-item <?php echo $index === 0 ? 'active' : ''; ?>">
-            <div class="slider-content" style="background-image: url('<?php echo htmlspecialchars($slide['image_url'] ?? ''); ?>');">
-              <div class="container">
-                <div class="slider-text">
-                  <h2><?php echo htmlspecialchars($slide['title']); ?></h2>
+            <?php
+              $has_bg = !empty($slide['image_url']);
+              $bg_style = '';
+              if ($has_bg) {
+                  $bg_style = "background-image: linear-gradient(90deg, rgba(1,39,75,0.85) 0%, rgba(1,39,75,0.5) 35%, rgba(0,0,0,0.3) 100%), url('" . htmlspecialchars($slide['image_url']) . "'); background-size: cover; background-position: center;";
+              } else {
+                  $bg_style = "background-color: #01274b;";
+              }
+            ?>
+            <div class="slider-content" style="<?php echo $bg_style; ?>">
+              <div class="container hero-inner">
+                <div class="hero-left">
+                  <h1>
+                    <?php echo htmlspecialchars($slide['title']); ?><br/>
+                    <?php echo htmlspecialchars($slide['title_line2'] ?? ''); ?>
+                    <?php if (!empty($slide['title_highlight'])): ?>
+                      <span><?php echo htmlspecialchars($slide['title_highlight']); ?></span>
+                    <?php endif; ?>
+                  </h1>
                   <?php if (!empty($slide['subtitle'])): ?>
-                    <p class="lead"><?php echo htmlspecialchars($slide['subtitle']); ?></p>
+                    <p class="hero-sub"><?php echo htmlspecialchars($slide['subtitle']); ?></p>
                   <?php endif; ?>
-                  <?php if (!empty($slide['link_url'])): ?>
-                    <a href="<?php echo htmlspecialchars($slide['link_url']); ?>" class="btn btn-success btn-lg">VER MÁS</a>
-                  <?php endif; ?>
+
+                  <div class="hero-features">
+                    <?php for ($i = 1; $i <= 3; $i++): ?>
+                      <?php if (!empty($slide['feature' . $i . '_title'])): ?>
+                      <div class="feature">
+                        <div class="feature-icon"><i class="fa-solid <?php echo htmlspecialchars($slide['feature' . $i . '_icon'] ?? 'fa-check'); ?>"></i></div>
+                        <div class="feature-text">
+                          <strong><?php echo htmlspecialchars($slide['feature' . $i . '_title']); ?></strong>
+                          <div class="small"><?php echo htmlspecialchars($slide['feature' . $i . '_text'] ?? ''); ?></div>
+                        </div>
+                      </div>
+                      <?php endif; ?>
+                    <?php endfor; ?>
+                  </div>
+
+                  <div class="hero-ctas mt-3">
+                    <?php if (!empty($slide['button1_text'])): ?>
+                      <a href="<?php echo htmlspecialchars($slide['button1_url'] ?? '#'); ?>" class="btn btn-<?php echo htmlspecialchars($slide['button1_style'] ?? 'success'); ?> btn-lg"><?php echo htmlspecialchars($slide['button1_text']); ?></a>
+                    <?php endif; ?>
+                    <?php if (!empty($slide['button2_text'])): ?>
+                      <a href="<?php echo htmlspecialchars($slide['button2_url'] ?? '#'); ?>" class="btn btn-<?php echo htmlspecialchars($slide['button2_style'] ?? 'outline-light'); ?> btn-lg"><?php echo htmlspecialchars($slide['button2_text']); ?></a>
+                    <?php endif; ?>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         <?php endforeach; ?>
       </div>
+      <?php if (count($slides) > 1): ?>
       <button class="carousel-control-prev" type="button" data-bs-target="#mainSlider" data-bs-slide="prev">
         <span class="carousel-control-prev-icon" aria-hidden="true"></span>
         <span class="visually-hidden">Anterior</span>
@@ -62,37 +98,7 @@ try {
         <span class="carousel-control-next-icon" aria-hidden="true"></span>
         <span class="visually-hidden">Siguiente</span>
       </button>
-    </div>
-  </section>
-  <?php else: ?>
-  <!-- Hero configurable desde el panel admin -->
-  <section class="hero" <?php if (($hero_config['background_type'] ?? '') === 'image' && !empty($hero_config['background_image'])): ?>style="background-image: url('<?php echo htmlspecialchars($hero_config['background_image']); ?>'); background-size: cover; background-position: center;"<?php endif; ?>>
-    <div class="container hero-inner">
-      <div class="hero-left">
-        <h1>
-          <?php echo htmlspecialchars($hero_config['title_line1'] ?? 'Expertos en tramitaciones'); ?><br/>
-          <?php echo htmlspecialchars($hero_config['title_line2'] ?? 'sanitarias ante'); ?> <span><?php echo htmlspecialchars($hero_config['title_highlight'] ?? 'SEREMI Salud'); ?></span>
-        </h1>
-        <p class="hero-sub"><?php echo htmlspecialchars($hero_config['subtitle'] ?? ''); ?></p>
-
-        <div class="hero-features">
-          <?php for ($i = 1; $i <= 3; $i++): ?>
-          <div class="feature">
-            <div class="feature-icon"><i class="fa-solid <?php echo htmlspecialchars($hero_config['feature' . $i . '_icon'] ?? 'fa-check'); ?>"></i></div>
-            <div class="feature-text">
-              <strong><?php echo htmlspecialchars($hero_config['feature' . $i . '_title'] ?? ''); ?></strong>
-              <div class="small"><?php echo htmlspecialchars($hero_config['feature' . $i . '_text'] ?? ''); ?></div>
-            </div>
-          </div>
-          <?php endfor; ?>
-        </div>
-
-        <div class="hero-ctas mt-3">
-          <a href="<?php echo htmlspecialchars($hero_config['button1_url'] ?? '#servicios'); ?>" class="btn btn-<?php echo htmlspecialchars($hero_config['button1_style'] ?? 'success'); ?> btn-lg"><?php echo htmlspecialchars($hero_config['button1_text'] ?? ''); ?></a>
-          <a href="<?php echo htmlspecialchars($hero_config['button2_url'] ?? '#contacto'); ?>" class="btn btn-<?php echo htmlspecialchars($hero_config['button2_style'] ?? 'outline-light'); ?> btn-lg"><?php echo htmlspecialchars($hero_config['button2_text'] ?? ''); ?></a>
-        </div>
-      </div>
-      <div class="hero-right" aria-hidden="true"></div>
+      <?php endif; ?>
     </div>
   </section>
   <?php endif; ?>

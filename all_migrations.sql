@@ -14,45 +14,53 @@ CREATE TABLE IF NOT EXISTS media (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- 2) Tabla SLIDES (carrusel de la portada)
+-- 2) Tabla SLIDES (carrusel de la portada) - con TODOS los campos del Hero integrados
 CREATE TABLE IF NOT EXISTS slides (
     id INT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
-    subtitle VARCHAR(255) DEFAULT NULL,
+    title_line2 VARCHAR(255) DEFAULT NULL,
+    title_highlight VARCHAR(255) DEFAULT NULL,
+    subtitle TEXT,
     image_url VARCHAR(500) DEFAULT NULL,
     link_url VARCHAR(500) DEFAULT NULL,
     `order` INT DEFAULT 0,
+    feature1_title VARCHAR(100) DEFAULT NULL,
+    feature1_text VARCHAR(255) DEFAULT NULL,
+    feature1_icon VARCHAR(50) DEFAULT 'fa-check',
+    feature2_title VARCHAR(100) DEFAULT NULL,
+    feature2_text VARCHAR(255) DEFAULT NULL,
+    feature2_icon VARCHAR(50) DEFAULT 'fa-file-contract',
+    feature3_title VARCHAR(100) DEFAULT NULL,
+    feature3_text VARCHAR(255) DEFAULT NULL,
+    feature3_icon VARCHAR(50) DEFAULT 'fa-user-friends',
+    button1_text VARCHAR(100) DEFAULT NULL,
+    button1_url VARCHAR(500) DEFAULT NULL,
+    button1_style VARCHAR(50) DEFAULT 'success',
+    button2_text VARCHAR(100) DEFAULT NULL,
+    button2_url VARCHAR(500) DEFAULT NULL,
+    button2_style VARCHAR(50) DEFAULT 'outline-light',
+    background_type ENUM('color', 'image') DEFAULT 'color',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- 3) Tabla HERO_CONFIG (textos editables de la portada)
-CREATE TABLE IF NOT EXISTS hero_config (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    field_key VARCHAR(50) UNIQUE NOT NULL,
-    field_value TEXT,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- Insertar valores por defecto del Hero
-INSERT IGNORE INTO hero_config (field_key, field_value) VALUES
-('title_line1', 'Expertos en tramitaciones'),
-('title_line2', 'sanitarias ante'),
-('title_highlight', 'SEREMI Salud'),
-('subtitle', 'Asesoría técnica integral para proyectos sanitarios, ambientales y de infraestructura.'),
-('feature1_title', 'Experiencia'),
-('feature1_text', 'en proyectos sanitarios'),
-('feature1_icon', 'fa-check'),
-('feature2_title', 'Tramitación'),
-('feature2_text', 'eficiente y profesional'),
-('feature2_icon', 'fa-file-contract'),
-('feature3_title', 'Acompañamiento'),
-('feature3_text', 'en todo el proceso'),
-('feature3_icon', 'fa-user-friends'),
-('button1_text', 'NUESTROS SERVICIOS'),
-('button1_url', '#servicios'),
-('button1_style', 'success'),
-('button2_text', 'CONTÁCTANOS'),
-('button2_url', '#contacto'),
-('button2_style', 'outline-light'),
-('background_type', 'color'),
-('background_image', '');
+-- Si la tabla slides YA EXISTE sin estas columnas, ejecutar estas líneas:
+/*
+ALTER TABLE slides ADD COLUMN title_line2 VARCHAR(255) DEFAULT NULL;
+ALTER TABLE slides ADD COLUMN title_highlight VARCHAR(255) DEFAULT NULL;
+ALTER TABLE slides ADD COLUMN feature1_title VARCHAR(100) DEFAULT NULL;
+ALTER TABLE slides ADD COLUMN feature1_text VARCHAR(255) DEFAULT NULL;
+ALTER TABLE slides ADD COLUMN feature1_icon VARCHAR(50) DEFAULT 'fa-check';
+ALTER TABLE slides ADD COLUMN feature2_title VARCHAR(100) DEFAULT NULL;
+ALTER TABLE slides ADD COLUMN feature2_text VARCHAR(255) DEFAULT NULL;
+ALTER TABLE slides ADD COLUMN feature2_icon VARCHAR(50) DEFAULT 'fa-file-contract';
+ALTER TABLE slides ADD COLUMN feature3_title VARCHAR(100) DEFAULT NULL;
+ALTER TABLE slides ADD COLUMN feature3_text VARCHAR(255) DEFAULT NULL;
+ALTER TABLE slides ADD COLUMN feature3_icon VARCHAR(50) DEFAULT 'fa-user-friends';
+ALTER TABLE slides ADD COLUMN button1_text VARCHAR(100) DEFAULT NULL;
+ALTER TABLE slides ADD COLUMN button1_url VARCHAR(500) DEFAULT NULL;
+ALTER TABLE slides ADD COLUMN button1_style VARCHAR(50) DEFAULT 'success';
+ALTER TABLE slides ADD COLUMN button2_text VARCHAR(100) DEFAULT NULL;
+ALTER TABLE slides ADD COLUMN button2_url VARCHAR(500) DEFAULT NULL;
+ALTER TABLE slides ADD COLUMN button2_style VARCHAR(50) DEFAULT 'outline-light';
+ALTER TABLE slides ADD COLUMN background_type ENUM('color', 'image') DEFAULT 'color';
+*/
